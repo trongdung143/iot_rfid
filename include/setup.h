@@ -19,8 +19,11 @@
 #define OLED_RST 39
 
 // rfid
-#define SS_PIN 38
-#define RST_PIN 47
+#define RFID_SDA 38
+#define RFID_RST 47
+#define RFID_MOSI 21
+#define RFID_CLK 19
+#define RFID_MISO 20
 
 // servo
 #define SERVO_PIN 40

@@ -1,5 +1,5 @@
 #include "rfid.h"
-MFRC522 rfid(SS_PIN, RST_PIN);
+MFRC522 rfid(RFID_SDA, RFID_RST);
 void rfid_init()
 {
 
