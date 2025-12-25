@@ -4,9 +4,8 @@
 #include "rfid.h"
 #include "display.h"
 
-bool opened = false;
-unsigned long time_open = 0;
 String rfid_id = "";
+bool gate_in = false;
 void setup()
 {
   Serial.begin(115200);
@@ -16,31 +15,39 @@ void setup()
   servo_init();
   wifi_init();
   camera_init();
-
-  // show_text("Ready");
   delay(3000);
 }
 
 void loop()
 {
   rfid_id = rfid_get_uid();
-  if (rfid_id != "" && !opened)
+  if (rfid_id != "")
   {
-
-    opened = true;
-    time_open = millis();
     camera_fb_t *fb = capture_image();
-    String suggested_slot = send_image_to_server(fb, rfid_id);
-    show_text(suggested_slot);
-    open_gate();
-    delay(5000);
-  }
-
-  if (opened)
-  {
-    show_text("Close");
-    opened = false;
-    close_gate();
+    if (gate_in)
+    {
+      String suggested_slot = in_parking(fb, rfid_id);
+      if (suggested_slot != "NOT")
+      {
+        show_text(suggested_slot);
+        open_gate();
+        delay(3000);
+        show_text("Close");
+        close_gate();
+      }
+    }
+    else
+    {
+      String total_money = out_parking(fb, rfid_id);
+      if (total_money != "NOT")
+      {
+        show_text(total_money);
+        open_gate();
+        delay(3000);
+        show_text("Close");
+        close_gate();
+      }
+    }
   }
   delay(20);
 }

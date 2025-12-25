@@ -29,7 +29,7 @@ void test_api(String rfid_id)
     http.end();
 }
 
-String send_image_to_server(camera_fb_t *fb, String rfid_id)
+String in_parking(camera_fb_t *fb, String rfid_id)
 {
     if (!fb)
         return "ERROR1";
@@ -52,7 +52,7 @@ String send_image_to_server(camera_fb_t *fb, String rfid_id)
 
     int httpCode = http.POST(fb->buf, fb->len);
 
-    String suggested_slot = "NOT";
+    String suggested_slot;
 
     if (httpCode == HTTP_CODE_OK)
     {
@@ -67,4 +67,44 @@ String send_image_to_server(camera_fb_t *fb, String rfid_id)
     http.end();
     esp_camera_fb_return(fb);
     return suggested_slot;
+}
+
+String out_parking(camera_fb_t *fb, String rfid_id)
+{
+    if (!fb)
+        return "ERROR1";
+
+    if (fb->format != PIXFORMAT_JPEG)
+    {
+        esp_camera_fb_return(fb);
+        return "ERROR2";
+    }
+
+    WiFiClient client;
+    HTTPClient http;
+
+    String url = "http://192.168.1.100:8080/api/v1/esp32/out-upload";
+    url += "?rfid_id=" + rfid_id;
+
+    http.begin(client, url);
+    http.addHeader("Content-Type", "image/jpeg");
+    http.setTimeout(15000);
+
+    int httpCode = http.POST(fb->buf, fb->len);
+
+    String total_money;
+
+    if (httpCode == HTTP_CODE_OK)
+    {
+        String payload = http.getString();
+        JsonDocument doc;
+        if (!deserializeJson(doc, payload))
+        {
+            total_money = doc["total_money"] | "";
+        }
+    }
+
+    http.end();
+    esp_camera_fb_return(fb);
+    return total_money;
 }
